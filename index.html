@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Surprise Maman ❤️</title>
+
+<!-- Styles CSS -->
+<style>
+body{
+    margin:0;
+    font-family:Segoe UI, sans-serif;
+    background:linear-gradient(135deg,#ff9a9e,#fad0c4);
+    color:white;
+    overflow-x:hidden;
+}
+
+/* Pages */
+.page{
+    display:none;
+    min-height:100vh;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+    text-align:center;
+    padding:20px;
+    animation:fade 1s;
+}
+
+.active{
+    display:flex;
+}
+
+@keyframes fade{
+    from{opacity:0; transform:translateY(30px);}
+    to{opacity:1; transform:translateY(0);}
+}
+
+h1{
+    font-size:2.5rem;
+    text-shadow:0 0 15px white;
+}
+
+button{
+    padding:15px 25px;
+    border:none;
+    border-radius:30px;
+    margin:10px;
+    font-size:16px;
+    cursor:pointer;
+    background:white;
+    color:#ff4e8a;
+    transition:0.3s;
+}
+
+button:hover{
+    transform:scale(1.1);
+    background:#ff4e8a;
+    color:white;
+}
+
+/* Cartes */
+.card{
+    background:rgba(255,255,255,0.2);
+    padding:30px;
+    border-radius:20px;
+    backdrop-filter:blur(10px);
+    max-width:500px;
+    width:90%;
+}
+
+/* Inputs */
+input, textarea{
+    width:100%;
+    padding:10px;
+    margin:10px 0;
+    border-radius:10px;
+    border:none;
+}
+
+.voeu{
+    background:white;
+    color:black;
+    padding:15px;
+    margin:10px;
+    border-radius:15px;
+    animation:fade 1s;
+}
+
+/* Animation coeurs */
+.heart{
+    position:fixed;
+    animation:float 5s linear infinite;
+}
+
+@keyframes float{
+    from{transform:translateY(100vh);}
+    to{transform:translateY(-10vh);}
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- PAGE 1: Accueil -->
+<div class="page active" id="home">
+    <h1>🎁 Une Surprise t'attend !</h1>
+    <button onclick="showPage('surprise')">SURPRISE</button>
+</div>
+
+<!-- PAGE 2: Surprise anniversaire -->
+<div class="page" id="surprise">
+    <div class="card">
+        <h1>🎂 Joyeux Anniversaire Maman Madjo Clarisse ❤️</h1>
+        <p>Merci pour ton amour, ta patience et tout ce que tu fais pour nous.  
+        Tu es notre trésor le plus précieux 💖</p>
+        <button onclick="startHearts()">❤️</button>
+        <button onclick="showPage('voeux')">Consulter les vœux</button>
+    </div>
+</div>
+
+<!-- PAGE 3: Livre des vœux -->
+<div class="page" id="voeux">
+    <div class="card">
+        <h1>💌 Livre des vœux</h1>
+        <button onclick="toggleForm()">Laisser un vœu</button>
+        <div id="form" style="display:none;">
+            <input id="nom" placeholder="Nom du destinateur">
+            <textarea id="message" placeholder="Votre vœu"></textarea>
+            <button onclick="addVoeu()">Envoyer</button>
+        </div>
+        <div id="listeVoeux"></div>
+        <button onclick="showPage('surprise')">Retour</button>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script type="module">
+// ------------------ FIREBASE ------------------
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
+
+// Config Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyDNZlucbD9cyKk19Ptwc6MS8MkhY5PlM1M",
+  authDomain: "hbd-ma.firebaseapp.com",
+  databaseURL: "https://hbd-ma-default-rtdb.firebaseio.com",
+  projectId: "hbd-ma",
+  storageBucket: "hbd-ma.firebasestorage.app",
+  messagingSenderId: "803502509565",
+  appId: "1:803502509565:web:73248d95fb783a03709d94",
+  measurementId: "G-NVYDL99G9S"
+};
+
+// Initialiser Firebase
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// ------------------ NAVIGATION ------------------
+function showPage(page){
+    document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+    document.getElementById(page).classList.add("active");
+}
+window.showPage = showPage;
+
+// ------------------ FORMULAIRE ------------------
+function toggleForm(){
+    let form=document.getElementById("form");
+    form.style.display=form.style.display==="none"?"block":"none";
+}
+window.toggleForm = toggleForm;
+
+window.addVoeu = function(){
+    let nom = document.getElementById("nom").value.trim();
+    let message = document.getElementById("message").value.trim();
+
+    if(!nom || !message){
+        alert("Remplis tous les champs");
+        return;
+    }
+
+    push(ref(db, "voeux"), {
+        nom: nom,
+        message: message
+    });
+
+    document.getElementById("nom").value="";
+    document.getElementById("message").value="";
+}
+
+// ------------------ CHARGER LES VŒUX ------------------
+const voeuxRef = ref(db, "voeux");
+
+onValue(voeuxRef, (snapshot) => {
+    let liste = document.getElementById("listeVoeux");
+    liste.innerHTML = "";
+
+    snapshot.forEach((childSnapshot) => {
+        let v = childSnapshot.val();
+        let div = document.createElement("div");
+        div.className = "voeu";
+        div.innerHTML = `<strong>${v.nom}</strong><br>${v.message}`;
+        liste.appendChild(div);
+    });
+});
+
+// ------------------ COEURS ANIMÉS ------------------
+function startHearts(){
+    for(let i=0;i<25;i++){
+        let heart=document.createElement("div");
+        heart.classList.add("heart");
+        heart.innerHTML="❤️";
+        heart.style.left=Math.random()*100+"vw";
+        heart.style.fontSize=(16+Math.random()*20)+"px";
+        heart.style.animationDuration=(3+Math.random()*3)+"s";
+        document.body.appendChild(heart);
+        setTimeout(()=>heart.remove(),5000);
+    }
+}
+window.startHearts = startHearts;
+
+</script>
+</body>
+</html>
