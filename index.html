@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Surprise Maman ❤️</title>
 
-<!-- Styles CSS -->
 <style>
 body{
     margin:0;
@@ -15,7 +14,6 @@ body{
     overflow-x:hidden;
 }
 
-/* Pages */
 .page{
     display:none;
     min-height:100vh;
@@ -59,7 +57,6 @@ button:hover{
     color:white;
 }
 
-/* Cartes */
 .card{
     background:rgba(255,255,255,0.2);
     padding:30px;
@@ -69,7 +66,6 @@ button:hover{
     width:90%;
 }
 
-/* Inputs */
 input, textarea{
     width:100%;
     padding:10px;
@@ -87,7 +83,6 @@ input, textarea{
     animation:fade 1s;
 }
 
-/* Animation coeurs */
 .heart{
     position:fixed;
     animation:float 5s linear infinite;
@@ -97,19 +92,18 @@ input, textarea{
     from{transform:translateY(100vh);}
     to{transform:translateY(-10vh);}
 }
-
 </style>
 </head>
 
 <body>
 
-<!-- PAGE 1: Accueil -->
+<!-- PAGE 1 -->
 <div class="page active" id="home">
     <h1>🎁 Une Surprise t'attend !</h1>
     <button onclick="showPage('surprise')">SURPRISE</button>
 </div>
 
-<!-- PAGE 2: Surprise anniversaire -->
+<!-- PAGE 2 -->
 <div class="page" id="surprise">
     <div class="card">
         <h1>🎂 Joyeux Anniversaire Maman Madjo Clarisse ❤️</h1>
@@ -120,28 +114,33 @@ input, textarea{
     </div>
 </div>
 
-<!-- PAGE 3: Livre des vœux -->
+<!-- PAGE 3 -->
 <div class="page" id="voeux">
     <div class="card">
         <h1>💌 Livre des vœux</h1>
+
+        <!-- ✅ Nombre de vœux -->
+        <p id="nbVoeux"><strong>Nombre de vœux : 0</strong></p>
+
         <button onclick="toggleForm()">Laisser un vœu</button>
+
         <div id="form" style="display:none;">
             <input id="nom" placeholder="Nom du destinateur">
             <textarea id="message" placeholder="Votre vœu"></textarea>
             <button onclick="addVoeu()">Envoyer</button>
         </div>
+
         <div id="listeVoeux"></div>
+
         <button onclick="showPage('surprise')">Retour</button>
     </div>
 </div>
 
-<!-- Scripts -->
 <script type="module">
-// ------------------ FIREBASE ------------------
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
 
-// Config Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyDNZlucbD9cyKk19Ptwc6MS8MkhY5PlM1M",
   authDomain: "hbd-ma.firebaseapp.com",
@@ -153,18 +152,17 @@ const firebaseConfig = {
   measurementId: "G-NVYDL99G9S"
 };
 
-// Initialiser Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// ------------------ NAVIGATION ------------------
+/* NAVIGATION */
 function showPage(page){
     document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
     document.getElementById(page).classList.add("active");
 }
 window.showPage = showPage;
 
-// ------------------ FORMULAIRE ------------------
+/* FORMULAIRE */
 function toggleForm(){
     let form=document.getElementById("form");
     form.style.display=form.style.display==="none"?"block":"none";
@@ -180,32 +178,56 @@ window.addVoeu = function(){
         return;
     }
 
-    push(ref(db, "voeux"), {
-        nom: nom,
-        message: message
-    });
+    push(ref(db, "voeux"), { nom, message });
 
     document.getElementById("nom").value="";
     document.getElementById("message").value="";
 }
 
-// ------------------ CHARGER LES VŒUX ------------------
+/* CHARGER LES VŒUX */
 const voeuxRef = ref(db, "voeux");
 
 onValue(voeuxRef, (snapshot) => {
+
     let liste = document.getElementById("listeVoeux");
     liste.innerHTML = "";
 
+    let count = snapshot.size || snapshot.numChildren();
+    document.getElementById("nbVoeux").innerHTML =
+        "<strong>Nombre de vœux : " + count + "</strong>";
+
     snapshot.forEach((childSnapshot) => {
+
         let v = childSnapshot.val();
+
         let div = document.createElement("div");
         div.className = "voeu";
-        div.innerHTML = `<strong>${v.nom}</strong><br>${v.message}`;
+
+        /* Nom cliquable */
+        let nom = document.createElement("div");
+        nom.innerHTML = `<strong>${v.nom}</strong>`;
+        nom.style.cursor = "pointer";
+
+        /* Message caché */
+        let message = document.createElement("div");
+        message.innerText = v.message;
+        message.style.display = "none";
+        message.style.marginTop = "10px";
+
+        /* Toggle message */
+        nom.onclick = () => {
+            message.style.display =
+                message.style.display === "none" ? "block" : "none";
+        };
+
+        div.appendChild(nom);
+        div.appendChild(message);
+
         liste.appendChild(div);
     });
 });
 
-// ------------------ COEURS ANIMÉS ------------------
+/* COEURS */
 function startHearts(){
     for(let i=0;i<25;i++){
         let heart=document.createElement("div");
@@ -222,4 +244,4 @@ window.startHearts = startHearts;
 
 </script>
 </body>
-</html>
+    </html>
