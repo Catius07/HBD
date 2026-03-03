@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Surprise Maman ❤️</title>
 
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ff4e8a">
+<link rel="icon" href="icon-192.png">
+
 <style>
 body{
     margin:0;
@@ -25,9 +30,7 @@ body{
     animation:fade 1s;
 }
 
-.active{
-    display:flex;
-}
+.active{ display:flex; }
 
 @keyframes fade{
     from{opacity:0; transform:translateY(30px);}
@@ -107,8 +110,10 @@ input, textarea{
 <div class="page" id="surprise">
     <div class="card">
         <h1>🎂 Joyeux Anniversaire Maman Madjo Clarisse ❤️</h1>
-        <p>Merci pour ton amour, ta patience et tout ce que tu fais pour nous.  
-        Tu es notre trésor le plus précieux 💖</p>
+        <p>
+        Merci pour ton amour, ta patience et tout ce que tu fais pour nous.
+        Tu es notre trésor le plus précieux 💖
+        </p>
         <button onclick="startHearts()">❤️</button>
         <button onclick="showPage('voeux')">Consulter les vœux</button>
     </div>
@@ -119,7 +124,6 @@ input, textarea{
     <div class="card">
         <h1>💌 Livre des vœux</h1>
 
-        <!-- ✅ Nombre de vœux -->
         <p id="nbVoeux"><strong>Nombre de vœux : 0</strong></p>
 
         <button onclick="toggleForm()">Laisser un vœu</button>
@@ -148,21 +152,20 @@ const firebaseConfig = {
   projectId: "hbd-ma",
   storageBucket: "hbd-ma.firebasestorage.app",
   messagingSenderId: "803502509565",
-  appId: "1:803502509565:web:73248d95fb783a03709d94",
-  measurementId: "G-NVYDL99G9S"
+  appId: "1:803502509565:web:73248d95fb783a03709d94"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-/* NAVIGATION */
+/* Navigation */
 function showPage(page){
     document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
     document.getElementById(page).classList.add("active");
 }
 window.showPage = showPage;
 
-/* FORMULAIRE */
+/* Form */
 function toggleForm(){
     let form=document.getElementById("form");
     form.style.display=form.style.display==="none"?"block":"none";
@@ -184,37 +187,30 @@ window.addVoeu = function(){
     document.getElementById("message").value="";
 }
 
-/* CHARGER LES VŒUX */
 const voeuxRef = ref(db, "voeux");
 
 onValue(voeuxRef, (snapshot) => {
-
     let liste = document.getElementById("listeVoeux");
     liste.innerHTML = "";
 
-    let count = snapshot.size || snapshot.numChildren();
+    let count = snapshot.numChildren();
     document.getElementById("nbVoeux").innerHTML =
         "<strong>Nombre de vœux : " + count + "</strong>";
 
     snapshot.forEach((childSnapshot) => {
-
         let v = childSnapshot.val();
-
         let div = document.createElement("div");
         div.className = "voeu";
 
-        /* Nom cliquable */
         let nom = document.createElement("div");
         nom.innerHTML = `<strong>${v.nom}</strong>`;
         nom.style.cursor = "pointer";
 
-        /* Message caché */
         let message = document.createElement("div");
         message.innerText = v.message;
         message.style.display = "none";
         message.style.marginTop = "10px";
 
-        /* Toggle message */
         nom.onclick = () => {
             message.style.display =
                 message.style.display === "none" ? "block" : "none";
@@ -222,12 +218,11 @@ onValue(voeuxRef, (snapshot) => {
 
         div.appendChild(nom);
         div.appendChild(message);
-
         liste.appendChild(div);
     });
 });
 
-/* COEURS */
+/* Coeurs */
 function startHearts(){
     for(let i=0;i<25;i++){
         let heart=document.createElement("div");
@@ -243,5 +238,17 @@ function startHearts(){
 window.startHearts = startHearts;
 
 </script>
+
+<!-- PWA Service Worker -->
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("service-worker.js")
+      .then(() => console.log("PWA prête ✅"))
+      .catch(err => console.log("Erreur SW:", err));
+  });
+}
+</script>
+
 </body>
-    </html>
+</html>
